@@ -1,0 +1,15 @@
+@media screen and (width>=760px) {
+  .main {
+    max-width: 1300px;
+    margin: auto;
+  }
+
+  .map-container {
+    width: 70%;
+  }
+
+  .tournament-list {
+    width: 30%;
+    min-width: 350px;
+  }
+}

@@ -1,35 +1,28 @@
-import { useEffect, useState } from 'react';
-import reactLogo from './assets/react.svg';
-import viteLogo from '/vite.svg';
+import { Routes, Route } from 'react-router-dom';
+import Header from './components/Header';
+import Home from './pages/Home';
+import TournamentDetails from './pages/TournamentDetails';
+import TournamentList from './pages/TournamentList';
 import './App.css';
-
+import './layout.css';
+import TournamentForm from './pages/TournamentForm';
+import { APIProvider } from '@vis.gl/react-google-maps';
 export default function App() {
-  const [serverData, setServerData] = useState('');
-
-  useEffect(() => {
-    async function readServerData() {
-      const resp = await fetch('/api/hello');
-      const data = await resp.json();
-
-      console.log('Data from server:', data);
-
-      setServerData(data.message);
-    }
-
-    readServerData();
-  }, []);
-
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank" rel="noreferrer">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank" rel="noreferrer">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>{serverData}</h1>
-    </>
+    <Routes>
+      <Route path="/" element={<Header />}>
+        <Route index element={<Home />} />
+        <Route
+          path="/tournaments"
+          element={
+            <APIProvider apiKey={'AIzaSyChDtIz2R4IQ29gvpWZyEJI-fgzE2V2y_I'}>
+              <TournamentList />
+            </APIProvider>
+          }
+        />
+        <Route path="/tournaments/:id" element={<TournamentDetails />} />
+        <Route path="/tournaments/edit/:id" element={<TournamentForm />} />
+      </Route>
+    </Routes>
   );
 }

@@ -48,5 +48,9 @@
     "stylelint-config-standard": "^32.0.0",
     "tsx": "^4.7.0",
     "typescript": "^5.4.3"
+  },
+  "dependencies": {
+    "@vis.gl/react-google-maps": "^1.5.1",
+    "react-router-dom": "^7.1.4"
   }
 }
