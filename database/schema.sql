@@ -12,15 +12,13 @@ CREATE TABLE "tournaments" (
   "address" text NOT NULL,
   "days" text NOT NULL,
   "hours" text NOT NULL,
+  "games" text,
   "notes" text,
+  "lat" decimal NOT NULL,
+  "lng" decimal NOT NULL,
   "created_at" timestamptz NOT NULL DEFAULT (now())
 );
 
-CREATE TABLE "games" (
-  "tournamentId" integer NOT NULL,
-  "name" text NOT NULL,
-  "created_at" timestamptz NOT NULL DEFAULT (now())
-);
 
 CREATE TABLE "socialMedia" (
   "tournamentId" integer NOT NULL,
@@ -37,8 +35,6 @@ CREATE TABLE "editPerms" (
   "createdBy" text NOT NULL,
   "tournamentId" integer PRIMARY KEY NOT NULL
 );
-
-ALTER TABLE "games" ADD FOREIGN KEY ("tournamentId") REFERENCES "tournaments" ("id");
 
 ALTER TABLE "socialMedia" ADD FOREIGN KEY ("tournamentId") REFERENCES "tournaments" ("id");
 

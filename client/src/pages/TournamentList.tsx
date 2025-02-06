@@ -1,12 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Tournament, readTournaments } from '../lib/data';
+import { Coordinates, Tournament, readTournaments } from '../lib/data';
 import { Link } from 'react-router-dom';
-import { Map, useMapsLibrary } from '@vis.gl/react-google-maps';
-
-export interface Coordinates {
-  lat: number;
-  lng: number;
-}
+import { Map, useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
+import { MapMarkers } from '../components/MapMarkers';
 
 export default function TournamentList() {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
@@ -15,50 +11,23 @@ export default function TournamentList() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const geocodingLib = useMapsLibrary('geocoding');
   const [geocoder, setGeocoder] = useState<google.maps.Geocoder>();
-  const [center, setCenter] = useState<Coordinates>({
-    lat: 34.06264734617613,
-    lng: -118.12956656534173,
-  });
-  const [locations, setLocations] = useState<Coordinates[]>([]);
+  const map = useMap();
 
   useEffect(() => {
     async function load() {
-      async function geocodeTournaments(
-        tournaments: Tournament[]
-      ): Promise<void> {
-        console.log('this also works');
-        const coordinates: Coordinates[] = [];
-        for (let i = 0; i < tournaments.length; i++) {
-          const location = await geocodeAddress(tournaments[i].address);
-          console.log(location);
-          coordinates.push(location);
-        }
-        console.log(
-          'coordinates value within geocodeTournaments(): ',
-          coordinates
-        );
-        setLocations(coordinates);
-      }
       try {
-        if (!tournaments.length) {
-          const tournaments = (await readTournaments()) as Tournament[];
-          setTournaments(tournaments);
-        }
+        const tournaments = (await readTournaments()) as Tournament[];
+        setTournaments(tournaments);
         if (!geocoder) {
           setGeocoder(new window.google.maps.Geocoder());
         }
-        await geocodeTournaments(tournaments);
+        setIsLoading(false);
       } catch (err) {
         setError(err);
-      } finally {
-        setIsLoading(false);
-        console.log('useState locations array: ', locations);
       }
     }
     load();
   }, [geocoder]);
-
-  useEffect(() => {});
 
   async function geocodeAddress(address: string): Promise<Coordinates> {
     const coordinates = { lat: 0, lng: 0 };
@@ -85,17 +54,14 @@ export default function TournamentList() {
     <div className="main container">
       <div className="map-container">
         <Map
+          mapId="12"
           defaultZoom={10}
-          defaultCenter={center}
-          // onCameraChanged={(ev: MapCameraChangedEvent) =>
-          //   console.log(
-          //     'camera changed:',
-          //     ev.detail.center,
-          //     'zoom:',
-          //     ev.detail.zoom
-          //   )
-          // }
-        ></Map>
+          defaultCenter={{
+            lat: 34.06264734617613,
+            lng: -118.12956656534173,
+          }}>
+          <MapMarkers tournaments={tournaments} />
+        </Map>
       </div>
       <div className="tournament-list">
         <div className="tournament-card">
@@ -117,11 +83,13 @@ export default function TournamentList() {
     async function handleCardClick() {
       const location = await geocodeAddress(tournament.address);
       console.log(location);
-      setCenter(location);
+      map?.panTo(
+        new google.maps.LatLng({ lat: location.lat, lng: location.lng })
+      );
     }
     return (
       <div className="tournament-card">
-        <Link to={`./${tournament.id}`}>
+        <Link to={`./edit/${tournament.id}`}>
           <h2>{tournament.name}</h2>
         </Link>
         <p onClick={handleCardClick}>{tournament.address}</p>

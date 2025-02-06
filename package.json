@@ -50,7 +50,10 @@
     "typescript": "^5.4.3"
   },
   "dependencies": {
+    "@tailwindcss/vite": "^4.0.3",
     "@vis.gl/react-google-maps": "^1.5.1",
-    "react-router-dom": "^7.1.4"
+    "google-maps-react-markers": "^2.0.14",
+    "react-router-dom": "^7.1.4",
+    "tailwindcss": "^4.0.3"
   }
 }

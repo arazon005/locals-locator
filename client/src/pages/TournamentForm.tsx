@@ -1,7 +1,15 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { FormEvent, useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { readTournament, Tournament } from '../lib/data';
+import { useNavigate, useParams } from 'react-router-dom';
+import {
+  addTournament,
+  Coordinates,
+  deleteTournament,
+  readTournament,
+  readTournamentGames,
+  Tournament,
+  updateTournament,
+} from '../lib/data';
+import { useMapsLibrary } from '@vis.gl/react-google-maps';
 
 export default function TournamentForm() {
   const { id } = useParams();
@@ -11,7 +19,18 @@ export default function TournamentForm() {
   const [error, setError] = useState<unknown>();
   const [tournamentDays, setTournamentDays] = useState<string[]>([]);
   const [tournamentHours, setTournamentHours] = useState<string[]>([]);
-  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Sat'];
+  const [tournamentGames, setTournamentGames] = useState<string[]>([]);
+  const [defaultStartValue, setDefaultStartValue] = useState<
+    string | undefined
+  >(undefined);
+  const [defaultEndValue, setDefaultEndValue] = useState<string | undefined>(
+    undefined
+  );
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const geocodingLib = useMapsLibrary('geocoding');
+  const [geocoder, setGeocoder] = useState<google.maps.Geocoder>();
+  const navigate = useNavigate();
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const times = [
     '1AM',
     '2AM',
@@ -38,6 +57,7 @@ export default function TournamentForm() {
     '11PM',
     '12AM',
   ];
+  const games = ['UNI2', 'T8', 'SF6', 'GGST', 'MBTL', 'MK1'];
   useEffect(() => {
     async function load(id: number) {
       setIsLoading(true);
@@ -48,29 +68,82 @@ export default function TournamentForm() {
         setTournament(tournament);
         setTournamentDays(tournament.days.split(' '));
         setTournamentHours(tournament.hours.split(' '));
+        const tournamentGames = await readTournamentGames(id);
+        setTournamentGames(tournamentGames);
+        console.log(tournamentGames);
       } catch (err) {
         setError(err);
       } finally {
+        if (!geocoder) {
+          setGeocoder(new window.google.maps.Geocoder());
+        }
         setIsLoading(false);
       }
     }
+    async function loadGeocoder() {
+      if (!geocoder) {
+        setGeocoder(new window.google.maps.Geocoder());
+      }
+    }
     if (isEditing) load(+id);
+    else loadGeocoder();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [geocoder]);
+
   if (isLoading) return <div>Loading...</div>;
   if (error) {
     return <div>Error Loading Tournament</div>;
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    const newTournament = Object.fromEntries(formData);
-    console.log(newTournament);
+    const tournamentData = Object.fromEntries(formData) as any;
+    const days = formData.getAll('days') as string[];
+    const daysString = days.join(' ');
+    console.log('before geocoding');
+    const coordinates = await geocodeAddress(tournamentData.address);
+    console.log('after geocoding');
+    const hours = tournamentData.startingHour + ' ' + tournamentData.endingHour;
+    const games = formData.getAll('games') as string[];
+    const gamesString = games.join(' ');
+    const newTournament: Tournament = {
+      name: tournamentData.name,
+      address: tournamentData.address,
+      days: daysString,
+      hours: hours,
+      games: gamesString,
+      notes: tournamentData.notes,
+      lat: coordinates.lat,
+      lng: coordinates.lng,
+    };
+    if (isEditing) {
+      newTournament.id = Number(id);
+      console.log(newTournament);
+      console.log(await updateTournament(newTournament));
+    } else {
+      console.log(await addTournament(newTournament));
+    }
+    navigate('/tournaments');
+  }
+  async function handleDelete() {
+    await deleteTournament(Number(id));
+    navigate('/tournaments');
+  }
+  async function geocodeAddress(address: string): Promise<Coordinates> {
+    const coordinates = { lat: 0, lng: 0 };
+    if (!geocoder) throw new Error('this broke');
+    await geocoder.geocode({ address }, (results, status) => {
+      if (results && status === 'OK') {
+        coordinates.lat = results[0].geometry.location.lat();
+        coordinates.lng = results[0].geometry.location.lng();
+      }
+    });
+    return coordinates;
   }
 
   return (
-    <div className="form">
+    <div className="form bg-white">
       <h1>{isEditing ? 'Edit Tournament' : 'New Tournament'}</h1>
       <form onSubmit={handleSubmit}>
         <label htmlFor="name">
@@ -94,28 +167,42 @@ export default function TournamentForm() {
         <h1>Days</h1>
         <div>
           {days.map((day) => (
-            <DayProps day={day} dayComparison={tournamentDays} />
+            <DayProps key={day} day={day} />
           ))}
         </div>
         <div>
           <h1>Hours</h1>
-          <select name="startingHour">
+          <select name="startingHour" defaultValue={defaultStartValue}>
             {times.map((hour) => (
-              <Hours hour={hour} comparison={0} />
+              <Hours key={hour} hour={hour} comparison={0} />
             ))}
           </select>{' '}
           to{' '}
-          <select name="endingHour">
+          <select name="endingHour" defaultValue={defaultEndValue}>
             {times.map((hour) => (
-              <Hours hour={hour} comparison={1} />
+              <Hours key={hour} hour={hour} comparison={1} />
             ))}
           </select>
         </div>
         <div>
           <h1>Games</h1>
+          {games.map((game) => (
+            <Games key={game} game={game} />
+          ))}
+        </div>
+        <div>
+          <textarea
+            name="notes"
+            defaultValue={isEditing ? tournament?.notes : ''}
+          />
         </div>
         <div>
           <input type="submit" value={isEditing ? 'Save' : 'Submit'} />
+          {isEditing && (
+            <button type="button" onDoubleClick={handleDelete}>
+              Delete
+            </button>
+          )}
         </div>
       </form>
     </div>
@@ -123,14 +210,13 @@ export default function TournamentForm() {
 
   type DayProps = {
     day: string;
-    dayComparison: string[];
   };
   function DayProps({ day }: DayProps) {
     return (
       <label>
         <input
           type="checkbox"
-          name={day}
+          name="days"
           value={day}
           defaultChecked={
             isEditing && tournamentDays.includes(day) ? true : false
@@ -146,14 +232,32 @@ export default function TournamentForm() {
     comparison: number;
   };
   function Hours({ hour, comparison }: HourProps) {
+    useEffect(() => {
+      if (comparison === 0 && isEditing && tournamentHours[0] === hour) {
+        setDefaultStartValue(hour);
+      } else if (comparison === 1 && isEditing && tournamentHours[1] === hour) {
+        setDefaultEndValue(hour);
+      }
+    }, []);
+    return <option value={hour}>{hour}</option>;
+  }
+
+  type GameProps = {
+    game: string;
+  };
+  function Games({ game }: GameProps) {
     return (
-      <option
-        value={hour}
-        selected={
-          isEditing && tournamentHours[comparison] === hour ? true : false
-        }>
-        {hour}
-      </option>
+      <label>
+        <input
+          type="checkbox"
+          value={game}
+          name="games"
+          defaultChecked={
+            isEditing && tournamentGames.includes(game) ? true : false
+          }
+        />
+        {game}
+      </label>
     );
   }
 }

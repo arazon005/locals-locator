@@ -20,6 +20,13 @@ body {
   background-color: blueviolet;
 }
 
+.form {
+  background-color: white;
+  max-width: 800px;
+  margin: auto;
+  padding: 20px;
+}
+
 .container {
   display: flex;
 }
