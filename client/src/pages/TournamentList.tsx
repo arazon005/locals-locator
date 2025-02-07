@@ -8,7 +8,6 @@ export default function TournamentList() {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<unknown>();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const geocodingLib = useMapsLibrary('geocoding');
   const [geocoder, setGeocoder] = useState<google.maps.Geocoder>();
   const map = useMap();
@@ -22,6 +21,9 @@ export default function TournamentList() {
           setGeocoder(new window.google.maps.Geocoder());
         }
         setIsLoading(false);
+        if (geocodingLib) {
+          console.log('geocodingLib loaded');
+        }
       } catch (err) {
         setError(err);
       }

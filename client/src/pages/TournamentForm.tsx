@@ -26,7 +26,6 @@ export default function TournamentForm() {
   const [defaultEndValue, setDefaultEndValue] = useState<string | undefined>(
     undefined
   );
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const geocodingLib = useMapsLibrary('geocoding');
   const [geocoder, setGeocoder] = useState<google.maps.Geocoder>();
   const navigate = useNavigate();
@@ -71,6 +70,9 @@ export default function TournamentForm() {
         const tournamentGames = await readTournamentGames(id);
         setTournamentGames(tournamentGames);
         console.log(tournamentGames);
+        if (geocodingLib) {
+          console.log('geocodingLib loaded');
+        }
       } catch (err) {
         setError(err);
       } finally {
