@@ -3,7 +3,7 @@ export default function Home() {
     <>
       <div className="home">
         <p className="home-image">
-          <img src="./images/riversideMegaMonthly.jpg" />
+          <img src="https://images.start.gg/images/tournament/652424/image-7c939694691834c4596238b1b7a11421.jpg?ehk=2Ekej1j36z3e7fgtrYFJvQLZ%2FZfCVpy%2BmEKQy41mCQ8%3D&ehkOptimized=AQA96pAo7BPb1DLepSFx7KfDro7Hg59wgWekBtVL%2FvI%3D" />
         </p>
         <p className="home-intro">
           Welcome to my web app, which helps for fighting game players to find
