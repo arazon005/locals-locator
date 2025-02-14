@@ -1,11 +1,29 @@
+.map-container {
+  width: 350px;
+  height: 400px;
+  margin: auto;
+}
+
+.container {
+  display: block;
+  align-content: center;
+  text-align: center;
+}
+
 @media screen and (width>=760px) {
   .main {
     max-width: 1300px;
     margin: auto;
   }
 
+  .container {
+    display: flex;
+    text-align: left;
+  }
+
   .map-container {
     width: 70%;
+    height: 800px;
   }
 
   .tournament-list {

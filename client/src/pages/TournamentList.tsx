@@ -60,7 +60,7 @@ export default function TournamentList() {
           defaultZoom={10}
           defaultCenter={{
             lat: 34.06264734617613,
-            lng: -118.12956656534173,
+            lng: -117.8295665653417,
           }}>
           <MapMarkers tournaments={tournaments} />
         </Map>

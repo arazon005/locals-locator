@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   addTournament,
@@ -27,8 +27,13 @@ export default function TournamentForm() {
     undefined
   );
   const geocodingLib = useMapsLibrary('geocoding');
+  const addressRef = useRef<HTMLInputElement>(null);
+  const places = useMapsLibrary('places');
   const [geocoder, setGeocoder] = useState<google.maps.Geocoder>();
+  const [placeAutocomplete, setPlaceAutocomplete] =
+    useState<google.maps.places.Autocomplete>();
   const navigate = useNavigate();
+
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const times = [
     '1AM',
@@ -70,6 +75,12 @@ export default function TournamentForm() {
         const tournamentGames = await readTournamentGames(id);
         setTournamentGames(tournamentGames);
         console.log(tournamentGames);
+        if (!places || !addressRef.current) return;
+        setPlaceAutocomplete(
+          new places.Autocomplete(addressRef.current, {
+            fields: ['geometry', 'name', 'formatted_address'],
+          })
+        );
         if (geocodingLib) {
           console.log('geocodingLib loaded');
         }
@@ -86,11 +97,24 @@ export default function TournamentForm() {
       if (!geocoder) {
         setGeocoder(new window.google.maps.Geocoder());
       }
+      if (!places || !addressRef.current) return;
+      setPlaceAutocomplete(
+        new places.Autocomplete(addressRef.current, {
+          fields: ['geometry', 'name', 'formatted_address'],
+        })
+      );
     }
     if (isEditing) load(+id);
     else loadGeocoder();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [geocoder]);
+
+  useEffect(() => {
+    if (!placeAutocomplete) return;
+    placeAutocomplete.addListener('place_changed', () => {
+      console.log('autocompleter works');
+    });
+  });
 
   if (isLoading) return <div>Loading...</div>;
   if (error) {
@@ -153,6 +177,7 @@ export default function TournamentForm() {
         </label>
         <input
           type="text"
+          className="name"
           name="name"
           placeholder="Tournament name here"
           defaultValue={isEditing ? tournament?.name : ''}
@@ -162,7 +187,9 @@ export default function TournamentForm() {
         </label>
         <input
           type="text"
+          className="address"
           name="address"
+          ref={addressRef}
           placeholder="1234 Address Way Los Angeles, CA 90000"
           defaultValue={isEditing ? tournament?.address : ''}
         />
@@ -174,17 +201,8 @@ export default function TournamentForm() {
         </div>
         <div>
           <h1>Hours</h1>
-          <select name="startingHour" defaultValue={defaultStartValue}>
-            {times.map((hour) => (
-              <Hours key={hour} hour={hour} comparison={0} />
-            ))}
-          </select>{' '}
-          to{' '}
-          <select name="endingHour" defaultValue={defaultEndValue}>
-            {times.map((hour) => (
-              <Hours key={hour} hour={hour} comparison={1} />
-            ))}
-          </select>
+          <HourSelect comparison={0} name={'startingHour'} /> to{' '}
+          <HourSelect comparison={1} name={'endingHour'} />
         </div>
         <div>
           <h1>Games</h1>
@@ -199,9 +217,16 @@ export default function TournamentForm() {
           />
         </div>
         <div>
-          <input type="submit" value={isEditing ? 'Save' : 'Submit'} />
+          <input
+            className="submit"
+            type="submit"
+            value={isEditing ? 'Save' : 'Submit'}
+          />
           {isEditing && (
-            <button type="button" onDoubleClick={handleDelete}>
+            <button
+              className="delete"
+              type="button"
+              onDoubleClick={handleDelete}>
               Delete
             </button>
           )}
@@ -228,7 +253,23 @@ export default function TournamentForm() {
       </label>
     );
   }
-
+  type HourSelectProps = {
+    comparison: number;
+    name: string;
+  };
+  function HourSelect({ comparison, name }: HourSelectProps) {
+    return (
+      <select
+        name={name}
+        defaultValue={
+          name === 'startingHour' ? defaultStartValue : defaultEndValue
+        }>
+        {times.map((hour) => (
+          <Hours key={hour} hour={hour} comparison={comparison} />
+        ))}
+      </select>
+    );
+  }
   type HourProps = {
     hour: string;
     comparison: number;

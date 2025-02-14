@@ -109,7 +109,7 @@ app.post('/api/tournaments', async (req, res, next) => {
 app.put('/api/tournaments/:id', async (req, res, next) => {
   try {
     console.log('hit put');
-    const { name, address, hours, games, notes, lat, lng } = req.body;
+    const { name, address, hours, games, days, notes, lat, lng } = req.body;
     console.log(req.body);
     const { id } = req.params;
     if (!name || !address || !hours || !lat || !lng) {
@@ -126,13 +126,14 @@ app.put('/api/tournaments/:id', async (req, res, next) => {
         "address" = $2,
         "hours" = $3,
         "games" = $4,
-        "notes" = $5,
-        "lat" = $6,
-        "lng" = $7
-    where "id" = $8
+        "days"= $5,
+        "notes" = $6,
+        "lat" = $7,
+        "lng" = $8
+    where "id" = $9
   returning *;
   `;
-    const params = [name, address, hours, games, notes, lat, lng, id];
+    const params = [name, address, hours, games, days, notes, lat, lng, id];
     const result = await db.query(sql, params);
     console.log('made it past query');
     const tournament = result.rows[0];

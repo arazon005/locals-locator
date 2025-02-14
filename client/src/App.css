@@ -6,11 +6,6 @@ header {
   margin-bottom: 20px;
 }
 
-header h2 {
-  padding: 10px;
-  margin: 0;
-}
-
 a:visited {
   color: inherit;
 }
@@ -27,10 +22,6 @@ body {
   padding: 20px;
 }
 
-.container {
-  display: flex;
-}
-
 .main {
   background-color: white;
   min-height: 800px;
@@ -39,4 +30,59 @@ body {
 .map-container,
 .tournament-list {
   padding: 5px;
+}
+
+h1,
+h2,
+h3 {
+  font-family: Oswald, serif;
+}
+
+.name,
+.address {
+  height: 1.5rem;
+  width: 20rem;
+  padding: 6px;
+  border-radius: 10px;
+  border-width: 1px transparent black;
+}
+
+textarea {
+  height: 5rem;
+  width: 20rem;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.submit,
+.delete {
+  padding: 5px;
+  margin-right: 5px;
+}
+
+header h2 {
+  padding: 10px;
+  margin: 0;
+}
+
+* {
+  font-family: 'Noto Sans', serif;
+}
+
+.home {
+  margin: 10px;
+}
+
+.home-intro {
+  padding: 15px;
+  background-color: white;
+  margin: 0;
+}
+
+.home-image {
+  margin: 0;
+}
+
+.home-image img {
+  width: 100%;
 }
